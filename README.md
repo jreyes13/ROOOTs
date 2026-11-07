@@ -1,77 +1,69 @@
-# Family Tree Project  
+# 🌳 ROOOTs · Nuestras Raíces
 
-> 🌐 **Live Interactive Tree Viewer:**  
-> 👉 **[https://jreyes13.github.io/FamilyTree/](https://jreyes13.github.io/FamilyTree/)**  
-> *(Navega interactivamente entre el **Árbol Reyes - Moreira**, el **Árbol González - Guijarro** o el **Árbol Unificado**)*
+*Cuatro siglos de historia y genealogía familiar (1614 – 2026) · Reyes · Moreira · González · Guijarro*
 
-This repository hosts a **family tree** in [GEDCOM format](https://en.wikipedia.org/wiki/GEDCOM), a widely used standard for exchanging genealogical data between different software and online platforms.  
+> 🌐 **Visor Interactivo en Directo (Live Web Viewer):**  
+> 👉 **[https://jreyes13.github.io/ROOOTs/](https://jreyes13.github.io/ROOOTs/)**  
+> *(Explora interactivamente el **Árbol Reyes - Moreira**, el **Árbol González - Guijarro** o el **Árbol Unificado**)*
 
-The idea is simple: by keeping this tree open and version-controlled on GitHub, anyone in the family (or collaborators) can view it, suggest improvements, and help grow an accurate and rich family history.  
-
----
-
-## 📂 What is GEDCOM?  
-**GEDCOM (GEnealogical Data COMmunication)** is a plain text file format created specifically for storing genealogical data. It allows:  
-- **Compatibility** – import/export between different genealogy programs and websites.  
-- **Portability** – the same file can be used with a wide range of tools.  
-- **Transparency** – the content can be read, edited, or versioned like any other text file.  
-
-This makes GEDCOM the best way to preserve and share a family tree across generations.  
+Este repositorio preserva y visualiza la historia y linajes de nuestra familia en formato [GEDCOM](https://en.wikipedia.org/wiki/GEDCOM), el estándar universal para el intercambio de datos genealógicos, junto con un visor web interactivo integrado y autónomo.
 
 ---
 
-## 🌳 Why a Family Tree?  
-Building and maintaining a family tree has several advantages:  
-- **Preservation of heritage** – keeps track of ancestors, dates, and connections before details are forgotten.  
-- **Collaboration** – multiple relatives can contribute knowledge, stories, and corrections.  
-- **Visualization** – allows you to see how different branches connect and grow over time.  
-- **Research** – provides a foundation for exploring historical records, DNA matches, and archives.  
+## 📂 ¿Por qué ROOOTs?
+
+**ROOOTs** nace para conectar las ramas de nuestro pasado y conservarlas vivas y accesibles para las futuras generaciones:
+- **Tres 'O' para tres dimensiones:** Simboliza la navegación entre los dos árboles independientes (*Reyes - Moreira* y *González - Guijarro*), la unión de ambos en el *Árbol Unificado*, y el paso continuo de las generaciones.
+- **Cuatro siglos de historia:** Registros documentados desde **1614 hasta 2026**.
+- **Cruces geográficos:** Desde la Ribera del Duero y del Arlanza (Burgos / Segovia) hasta las Rías Baixas (Galicia), Asturias y Madrid.
 
 ---
 
-## 🔍 How to View the Tree  
+## 🔍 Cómo Explorar el Árbol
 
-### 🌟 1. Interactive Family Tree Web Viewer (Built-in)
-This repository includes a modern, dedicated **Family Tree Web Viewer** located in the [`docs/`](docs/) folder. It works completely offline and is ready for GitHub Pages:
+### 🌟 1. Visor Web Interactivo Integrado
+El repositorio incluye la aplicación web interactiva en la carpeta [`docs/`](docs/), lista para funcionar en local o en GitHub Pages:
 
-- **Tree Selector:**
-  1. 🌿 **Árbol Reyes - Moreira** (373 individuals) – Madrid, Galicia, Asturias, Ribera del Duero.
-  2. 🌿 **Árbol González - Guijarro** (92 individuals) – Covarrubias, Moradillo, Fuentecén, Aldehorno.
-  3. 🌟 **Árbol Unificado Familiar** (461 individuals) – Full merger connecting all branches across centuries (1614 – 2026).
-- **Interactive Navigation:** Pan & zoom across generations (ancestors and descendants), search by name, year, or location, and view detailed cards with direct relatives and photographs.
-- **How to Open:**
-  - **Online (Direct Access):** 👉 **[Open Live Viewer](https://jreyes13.github.io/FamilyTree/)**
-  - **Locally:** Open [`docs/index.html`](docs/index.html) in any web browser.
-
----
-
-### 📂 Available GEDCOM Files
-
-- **[`REYES_MOREIRA_Genealogy.ged`](REYES_MOREIRA_Genealogy.ged):** Isolated tree (373 individuals, 123 families).
-- **[`GONZALEZ_GUIJARRO_Genealogy.ged`](GONZALEZ_GUIJARRO_Genealogy.ged):** Isolated tree (92 individuals, 47 families).
-- **[`MASTER_UNIFIED_Genealogy.ged`](MASTER_UNIFIED_Genealogy.ged):** Unified master tree merging both branches (461 individuals, 169 families).
+- **Selector de Árboles Independientes:**
+  1. 🌿 **Árbol Reyes - Moreira** (373 personas) – Tronco principal (Madrid, Galicia, Asturias, Ribera del Duero).
+  2. 🌿 **Árbol González - Guijarro** (92 personas) – Rama Covarrubias, Moradillo de Roa, Fuentecén, Aldehorno.
+  3. 🌟 **Árbol Unificado Familiar** (461 personas) – Fusión completa conectando todos los linajes.
+- **Navegación Interactiva:** Zoom, arrastre (*pan & zoom*), árbol de ancestros y descendientes, buscador en tiempo real, fotografías históricas y ficha biográfica detallada.
+- **Calendario Familiar:** Efemérides con filtros de cumpleaños y aniversarios de defunción.
+- **Estadísticas Demográficas:** Esperanza de vida por sexo, longevidad récord, estacionalidad por meses de nacimiento y épocas.
+- **Cómo Abrirlo:**
+  - **Online:** 👉 **[Abrir ROOOTs en GitHub Pages](https://jreyes13.github.io/ROOOTs/)**
+  - **En local:** Abre [`docs/index.html`](docs/index.html) en cualquier navegador web.
 
 ---
 
-### 🌐 2. External Genealogy Viewers & Software
+### 📂 Archivos GEDCOM Disponibles
 
-- **Topola Genealogy Viewer** (online, no installation):  
+- **[`REYES_MOREIRA_Genealogy.ged`](REYES_MOREIRA_Genealogy.ged):** Árbol aislado (373 individuos, 123 familias).
+- **[`GONZALEZ_GUIJARRO_Genealogy.ged`](GONZALEZ_GUIJARRO_Genealogy.ged):** Árbol aislado (92 individuos, 47 familias).
+- **[`MASTER_UNIFIED_Genealogy.ged`](MASTER_UNIFIED_Genealogy.ged):** Árbol unificado con la fusión de todas las ramas (461 individuos, 169 familias).
+
+---
+
+### 🌐 2. Visores y Software Externos
+
+- **Topola Genealogy Viewer** (online, sin instalación):  
   👉 [Open Family Tree in Topola Viewer](https://pewu.github.io/topola-viewer/#/)  
-  - Upload either `.ged` file from this repository.  
-  - Browse individuals, families, and connections dynamically.  
+  - Sube cualquiera de los archivos `.ged` del repositorio.  
+  - Navegación gráfica interactiva y exportación SVG/PDF.  
 
-- **Findmypast** (or other genealogy platforms):  
-  - Import the `.ged` file into your personal account at [Findmypast](https://www.findmypast.co.uk/).  
+- **Findmypast** (o plataformas genealógicas):  
+  - Importa el archivo `.ged` en tu cuenta de [Findmypast](https://www.findmypast.co.uk/).  
 
-- **Desktop & Mobile Genealogy Software:**  
-  - Examples: [Gramps](https://gramps-project.org/), [Ancestris](https://www.ancestris.org/), [Family Tree Builder](https://www.myheritage.com/family-tree-builder).  
+- **Software de Genealogía de Escritorio o Móvil:**  
+  - Ejemplos: [Gramps](https://gramps-project.org/), [Ancestris](https://www.ancestris.org/), [Family Tree Builder](https://www.myheritage.com/family-tree-builder).  
 
 ---
 
-## 🤝 How to Contribute  
+## 🤝 Cómo Colaborar
 
-- **Fork this repository** and propose updates (new relatives, corrections, additional details).  
-- **Submit pull requests** so changes can be reviewed and merged.  
-- **Add documentation** (stories, photos, or notes) in separate folders to enrich the tree.  
+- **Haz un fork de este repositorio** y propón actualizaciones (nuevos familiares, correcciones, anécdotas).  
+- **Envía Pull Requests** para revisar e incorporar datos.  
+- **Añade documentación** (fotografías, documentos históricos o notas) para seguir enriqueciendo la memoria de la familia.  
 
-By working together, we can keep this family tree accurate, alive, and growing. 
+¡Juntos mantenemos **ROOOTs** vivo, riguroso y en constante crecimiento! 
