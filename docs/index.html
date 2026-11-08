@@ -777,9 +777,12 @@
   <!-- Header -->
   <header>
     <div class="brand">
+      <a href="../" title="Volver al Portal ROOOTs" style="text-decoration: none; color: #475569; font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border-radius: 8px; background: #f1f5f9; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; transition: all 0.2s ease;">
+        ← Portal ROOOTs
+      </a>
       <div class="brand-icon">🌳</div>
       <div>
-        <div class="brand-title">ROOOTs · <span style="font-weight: 500; font-size: 0.95em; color: #475569;">Nuestras Raíces</span></div>
+        <div class="brand-title">ROOOTs · <span style="font-weight: 500; font-size: 0.95em; color: #475569;">Visor Interactivo</span></div>
         <div class="brand-subtitle" id="activeTreeSubtitle">Cargando árbol...</div>
       </div>
     </div>
@@ -815,6 +818,9 @@
       <button class="view-btn" id="viewBtnDirectory" onclick="switchMainView('directory')">Directorio</button>
       <button class="view-btn" id="viewBtnCalendar" onclick="switchMainView('calendar')">Calendario</button>
       <button class="view-btn" id="viewBtnStats" onclick="switchMainView('stats')">Estadísticas</button>
+      <a href="https://github.com/jreyes13/ROOOTs" target="_blank" rel="noopener noreferrer" class="view-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px; color: #1e293b;" title="Ver repositorio en GitHub">
+        <span>GitHub</span> ↗
+      </a>
     </div>
   </header>
 
@@ -1093,9 +1099,20 @@
     });
 
     function initApp() {
+      // Check URL query parameters for tree and person
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestedTree = urlParams.get('tree');
+      if (requestedTree && ['reyes_moreira', 'gonzalez_guijarro', 'master_unified'].includes(requestedTree)) {
+        activeTreeKey = requestedTree;
+        document.getElementById('tabReyes').classList.toggle('active', activeTreeKey === 'reyes_moreira');
+        document.getElementById('tabGonzalez').classList.toggle('active', activeTreeKey === 'gonzalez_guijarro');
+        document.getElementById('tabUnified').classList.toggle('active', activeTreeKey === 'master_unified');
+      }
+      const requestedPerson = urlParams.get('person');
+
       // Check if data bundle is loaded
       if (window.TREES_DATA && window.TREES_DATA[activeTreeKey]) {
-        loadTree(activeTreeKey);
+        loadTree(activeTreeKey, requestedPerson);
       } else {
         // Fallback fetch JSON
         fetch(`data/${activeTreeKey}.json`)
@@ -1103,7 +1120,7 @@
           .then(data => {
             window.TREES_DATA = window.TREES_DATA || {};
             window.TREES_DATA[activeTreeKey] = data;
-            loadTree(activeTreeKey);
+            loadTree(activeTreeKey, requestedPerson);
           })
           .catch(err => console.error("Error loading tree JSON:", err));
       }
@@ -1130,10 +1147,10 @@
       }
     }
 
-    function loadTree(treeKey) {
+    function loadTree(treeKey, initialPersonId) {
       currentTreeData = window.TREES_DATA[treeKey];
-      focusPersonId = currentTreeData.rootId;
-      selectedPersonId = currentTreeData.rootId;
+      focusPersonId = (initialPersonId && currentTreeData.individuals[initialPersonId]) ? initialPersonId : currentTreeData.rootId;
+      selectedPersonId = focusPersonId;
 
       // Update subtitle and badges
       document.getElementById('activeTreeSubtitle').textContent = currentTreeData.subtitle;
@@ -1158,6 +1175,7 @@
 
     /* ----------------------------------------------------
        Interactive Tree Renderer (Ancestors & Descendants)
+       Collision-Free Subtree Width Allocation Engine
        ---------------------------------------------------- */
     function renderTreeGraph() {
       const nodesLayer = document.getElementById('nodesLayer');
@@ -1170,78 +1188,215 @@
       const indis = currentTreeData.individuals;
       const layoutNodes = [];
       const layoutLinks = [];
+      const placedNodesMap = new Map();
+
+      const GEN_Y_GAP = 145;
+      const GAP_X = 50;
 
       // 1. Center / Focus Person
       const focus = indis[focusPersonId];
       const cx = 0;
       const cy = 0;
-      layoutNodes.push({ id: focus.id, x: cx, y: cy, isFocus: true });
+      const focusNode = { id: focus.id, x: cx, y: cy, isFocus: true };
+      layoutNodes.push(focusNode);
+      placedNodesMap.set(focus.id, focusNode);
 
       // Spouses adjacent to focus person
-      const spouseIds = focus.spouses ? focus.spouses.map(s => s.id) : [];
+      const spouseIds = focus.spouses ? focus.spouses.map(s => s.id).filter(id => indis[id]) : [];
+      let coupleCenterX = cx;
       spouseIds.forEach((spId, idx) => {
-        const sx = cx + (NODE_WIDTH + 50) * (idx + 1);
-        layoutNodes.push({ id: spId, x: sx, y: cy, isSpouse: true });
-        layoutLinks.push({ x1: cx + NODE_WIDTH, y1: cy + NODE_HEIGHT/2, x2: sx, y2: cy + NODE_HEIGHT/2, style: 'spouse' });
+        const sx = cx + (NODE_WIDTH + GAP_X) * (idx + 1);
+        const spNode = { id: spId, x: sx, y: cy, isSpouse: true };
+        layoutNodes.push(spNode);
+        placedNodesMap.set(spId, spNode);
+        layoutLinks.push({ 
+          x1: cx + NODE_WIDTH, y1: cy + NODE_HEIGHT/2, 
+          x2: sx, y2: cy + NODE_HEIGHT/2, 
+          style: 'spouse',
+          from: focus.id, to: spId
+        });
       });
+      if (spouseIds.length > 0) {
+        coupleCenterX = cx + (NODE_WIDTH + GAP_X) / 2;
+      }
 
-      // 2. Ancestors (Generations Upwards: parents, grandparents, etc.)
-      const GEN_Y_GAP = 140;
-      const GEN_X_GAP = 250;
+      // 2. Ancestors (Generations Upwards)
+      function getAncestorWidth(personId, depth) {
+        if (depth >= 4) return NODE_WIDTH + GAP_X;
+        const p = indis[personId];
+        if (!p || !p.parents || p.parents.length === 0) return NODE_WIDTH + GAP_X;
+        const parents = p.parents.filter(id => indis[id]);
+        if (parents.length === 0) return NODE_WIDTH + GAP_X;
+        if (parents.length === 1) {
+          return Math.max(NODE_WIDTH + GAP_X, getAncestorWidth(parents[0], depth + 1));
+        }
+        return Math.max(NODE_WIDTH + GAP_X, getAncestorWidth(parents[0], depth + 1) + getAncestorWidth(parents[1], depth + 1));
+      }
 
-      function placeAncestors(personId, curX, curY, genLevel) {
-        if (genLevel > 3) return; // Limit depth for clean visual
+      function placeAncestors(personId, curCenterX, curY, depth) {
+        if (depth >= 4) return;
         const p = indis[personId];
         if (!p || !p.parents || p.parents.length === 0) return;
-
         const parents = p.parents.filter(id => indis[id]);
         if (parents.length === 0) return;
 
-        const widthSpan = GEN_X_GAP / Math.pow(1.8, genLevel - 1);
         const yPos = curY - GEN_Y_GAP;
 
-        parents.forEach((parId, i) => {
-          const xOffset = parents.length === 1 ? 0 : (i === 0 ? -widthSpan : widthSpan);
-          const xPos = curX + xOffset;
-          layoutNodes.push({ id: parId, x: xPos, y: yPos });
-          layoutLinks.push({ x1: curX + NODE_WIDTH/2, y1: curY, x2: xPos + NODE_WIDTH/2, y2: yPos + NODE_HEIGHT, style: 'ancestor' });
-          placeAncestors(parId, xPos, yPos, genLevel + 1);
-        });
-      }
-      placeAncestors(focusPersonId, cx, cy, 1);
+        if (parents.length === 1) {
+          const parId = parents[0];
+          const xPos = curCenterX - NODE_WIDTH / 2;
+          const parNode = { id: parId, x: xPos, y: yPos };
+          layoutNodes.push(parNode);
+          placedNodesMap.set(parId, parNode);
+          layoutLinks.push({ 
+            x1: curCenterX, y1: curY, 
+            x2: curCenterX, y2: yPos + NODE_HEIGHT, 
+            style: 'ancestor', from: personId, to: parId 
+          });
+          placeAncestors(parId, curCenterX, yPos, depth + 1);
+        } else {
+          const w0 = getAncestorWidth(parents[0], depth + 1);
+          const w1 = getAncestorWidth(parents[1], depth + 1);
+          const totalW = w0 + w1;
 
-      // 3. Descendants (Generations Downwards: children, grandchildren)
-      function placeDescendants(personId, curX, curY, genLevel) {
-        if (genLevel > 2) return;
+          let cx0 = curCenterX - totalW / 2 + w0 / 2;
+          let cx1 = curCenterX + totalW / 2 - w1 / 2;
+
+          if (cx1 - cx0 < NODE_WIDTH + GAP_X) {
+            const extra = (NODE_WIDTH + GAP_X) - (cx1 - cx0);
+            cx0 -= extra / 2;
+            cx1 += extra / 2;
+          }
+
+          const x0 = cx0 - NODE_WIDTH / 2;
+          const x1 = cx1 - NODE_WIDTH / 2;
+
+          const p0Node = { id: parents[0], x: x0, y: yPos };
+          const p1Node = { id: parents[1], x: x1, y: yPos };
+          layoutNodes.push(p0Node);
+          layoutNodes.push(p1Node);
+          placedNodesMap.set(parents[0], p0Node);
+          placedNodesMap.set(parents[1], p1Node);
+
+          layoutLinks.push({ 
+            x1: curCenterX, y1: curY, 
+            x2: cx0, y2: yPos + NODE_HEIGHT, 
+            style: 'ancestor', from: personId, to: parents[0] 
+          });
+          layoutLinks.push({ 
+            x1: curCenterX, y1: curY, 
+            x2: cx1, y2: yPos + NODE_HEIGHT, 
+            style: 'ancestor', from: personId, to: parents[1] 
+          });
+
+          placeAncestors(parents[0], cx0, yPos, depth + 1);
+          placeAncestors(parents[1], cx1, yPos, depth + 1);
+        }
+      }
+      placeAncestors(focusPersonId, cx + NODE_WIDTH / 2, cy, 1);
+
+      // 3. Descendants (Generations Downwards)
+      function getDescendantWidth(personId, depth) {
+        if (depth >= 3) return NODE_WIDTH + GAP_X;
+        const p = indis[personId];
+        if (!p || !p.children || p.children.length === 0) return NODE_WIDTH + GAP_X;
+        const children = p.children.filter(id => indis[id]);
+        if (children.length === 0) return NODE_WIDTH + GAP_X;
+        return Math.max(NODE_WIDTH + GAP_X, children.reduce((sum, cid) => sum + getDescendantWidth(cid, depth + 1), 0));
+      }
+
+      function placeDescendants(personId, curCenterX, curY, depth) {
+        if (depth >= 3) return;
         const p = indis[personId];
         if (!p || !p.children || p.children.length === 0) return;
-
         const children = p.children.filter(id => indis[id]);
         if (children.length === 0) return;
 
-        const totalWidth = (children.length - 1) * GEN_X_GAP;
-        const startX = curX - totalWidth / 2;
         const yPos = curY + GEN_Y_GAP;
+        const widths = children.map(cid => getDescendantWidth(cid, depth + 1));
+        const totalW = widths.reduce((sum, w) => sum + w, 0);
+        let startX = curCenterX - totalW / 2;
 
         children.forEach((chId, i) => {
-          const xPos = startX + i * GEN_X_GAP;
-          layoutNodes.push({ id: chId, x: xPos, y: yPos });
-          layoutLinks.push({ x1: curX + NODE_WIDTH/2, y1: curY + NODE_HEIGHT, x2: xPos + NODE_WIDTH/2, y2: yPos, style: 'child' });
-          placeDescendants(chId, xPos, yPos, genLevel + 1);
+          const w = widths[i];
+          const childCenterX = startX + w / 2;
+          const childX = childCenterX - NODE_WIDTH / 2;
+
+          const chNode = { id: chId, x: childX, y: yPos };
+          layoutNodes.push(chNode);
+          placedNodesMap.set(chId, chNode);
+
+          layoutLinks.push({ 
+            x1: curCenterX, y1: curY + NODE_HEIGHT, 
+            x2: childCenterX, y2: yPos, 
+            style: 'child', from: personId, to: chId 
+          });
+
+          placeDescendants(chId, childCenterX, yPos, depth + 1);
+          startX += w;
         });
       }
-      placeDescendants(focusPersonId, cx, cy, 1);
+      placeDescendants(focusPersonId, coupleCenterX + NODE_WIDTH / 2, cy, 1);
 
-      // Render Links
+      // 4. Horizontal Collision Resolution Pass by Generational Level
+      const levelGroups = {};
+      layoutNodes.forEach(item => {
+        const roundedY = Math.round(item.y);
+        levelGroups[roundedY] = levelGroups[roundedY] || [];
+        levelGroups[roundedY].push(item);
+      });
+
+      Object.keys(levelGroups).forEach(y => {
+        const row = levelGroups[y];
+        row.sort((a, b) => a.x - b.x);
+        for (let i = 1; i < row.length; i++) {
+          const prev = row[i - 1];
+          const curr = row[i];
+          const minRequiredX = prev.x + NODE_WIDTH + GAP_X;
+          if (curr.x < minRequiredX) {
+            const shift = minRequiredX - curr.x;
+            curr.x += shift;
+          }
+        }
+      });
+
+      // Render Links (dynamically bound to final node coordinates)
       layoutLinks.forEach(link => {
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        let x1 = link.x1;
+        let y1 = link.y1;
+        let x2 = link.x2;
+        let y2 = link.y2;
+
+        const fromNode = placedNodesMap.get(link.from);
+        const toNode = placedNodesMap.get(link.to);
+
+        if (fromNode && toNode) {
+          if (link.style === 'ancestor') {
+            x1 = fromNode.x + NODE_WIDTH / 2;
+            y1 = fromNode.y;
+            x2 = toNode.x + NODE_WIDTH / 2;
+            y2 = toNode.y + NODE_HEIGHT;
+          } else if (link.style === 'child') {
+            x1 = fromNode.isFocus && spouseIds.length > 0 ? (fromNode.x + (NODE_WIDTH + GAP_X)/2 + NODE_WIDTH/2) : fromNode.x + NODE_WIDTH / 2;
+            y1 = fromNode.y + NODE_HEIGHT;
+            x2 = toNode.x + NODE_WIDTH / 2;
+            y2 = toNode.y;
+          } else if (link.style === 'spouse') {
+            x1 = fromNode.x + NODE_WIDTH;
+            y1 = fromNode.y + NODE_HEIGHT / 2;
+            x2 = toNode.x;
+            y2 = toNode.y + NODE_HEIGHT / 2;
+          }
+        }
+
         let d = '';
         if (link.style === 'spouse') {
-          d = `M ${link.x1} ${link.y1} L ${link.x2} ${link.y2}`;
+          d = `M ${x1} ${y1} L ${x2} ${y2}`;
           path.setAttribute('stroke-dasharray', '4 3');
         } else {
-          const midY = (link.y1 + link.y2) / 2;
-          d = `M ${link.x1} ${link.y1} C ${link.x1} ${midY}, ${link.x2} ${midY}, ${link.x2} ${link.y2}`;
+          const midY = (y1 + y2) / 2;
+          d = `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
         }
         path.setAttribute('d', d);
         path.setAttribute('class', 'link-line');
